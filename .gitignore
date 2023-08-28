@@ -116,3 +116,4 @@ $RECYCLE.BIN/
 # .idea
 .idea
 
+**/next.config.js

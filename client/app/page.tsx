@@ -1,6 +1,80 @@
+"use client"
 import Image from 'next/image'
+import Janus from 'janus-gateway';
+import {useEffect} from "react";
 
 export default function Home() {
+
+  useEffect(() => {
+    // Janus 초기화 옵션 설정
+    const initOptions = {
+      debug: true, // 디버그 메시지 출력 여부
+      callback: () => {
+        console.log('Janus initialized successfully');
+        // 이곳에서 Janus 라이브러리를 사용할 수 있습니다.
+        // 초기화 후에 다양한 Janus 기능을 이곳에서 사용할 수 있습니다.
+      },
+      success: () => {console.log("성공!")},
+      error:() => {console.log("실패")},
+
+    };
+
+    // Janus 라이브러리 초기화
+    Janus.init(initOptions);
+
+    const constructOptions = {
+      server: "http://172.27.165.156:8088/janus",
+      success: function () {
+        // Done! attach to plugin XYZ
+          console.log("성공!!!!!!!!!!!!!!!!!!!!!!")
+
+      },
+      error: function () {
+        // Error, can't go on...
+      },
+      destroyed: function () {
+        // I should get rid of this
+      }
+    };
+
+    const test = new Janus(constructOptions)
+
+    test.attach(
+        {
+          plugin: "janus.plugin.echotest",
+          success: function (pluginHandle) {
+            // Plugin attached! 'pluginHandle' is our handle
+
+          },
+          error: function (cause) {
+            // Couldn't attach to the plugin
+          },
+          consentDialog: function (on) {
+            // e.g., Darken the screen if on=true (getUserMedia incoming), restore it otherwise
+          },
+          onmessage: function (msg, jsep) {
+            // We got a message/event (msg) from the plugin
+            // If jsep is not null, this involves a WebRTC negotiation
+          },
+          onlocaltrack: function (track, added) {
+            // A local track to display has just been added (getUserMedia worked!) or removed
+          },
+          onremotetrack: function (track, mid, added, metadata) {
+            // A remote track (working PeerConnection!) with a specific mid has just been added or removed
+            // You can query metadata to get some more information on why track was added or removed
+            // metadata fields:
+            //   - reason: 'created' | 'ended' | 'mute' | 'unmute'
+          },
+          oncleanup: function () {
+            // PeerConnection with the plugin closed, clean the UI
+            // The plugin handle is still valid so we can create a new one
+          },
+        }    );
+    // 컴포넌트가 언마운트될 때 Janus 종료
+    return () => {
+      // Janus.destroy();
+    };
+  }, []);
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
